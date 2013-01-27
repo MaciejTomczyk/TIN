@@ -43,40 +43,51 @@ app.get('/', function(req, response) {
 
 
 var status = {
-  actions      : [],
-  players      : [],
-  actionsCount : 0, 
-  player1Count : 0,
-  player2Count : 0
+  playerLeftName    : null, 
+  playerRightName   : null, 
+  playerLeftAction  : 0,
+  playerRightAction : 0
 };
 
 
 
-io.sockets.on('connection', function(client) {  
+io.sockets.on('connection', function(client) {
   console.log('Client connected...');
-  if (status.players[0] !== undefined &&
-        status.players[1] !== undefined ) {
-    client.emit('playersLimit', status.players);
+  if (status.playerLeftName !== null && status.playerRightName !== null) {
+    client.emit('playersLimit', status);
   }
   else{ 
     client.emit('allowJoin');
   }
 
+
   client.on('join', function(username) {
     // set username associate to the client
       client.set('username', username);
-      status.players.push(username);
+      if (status.playerLeftName === null) {
+        status.playerLeftName = username;
+      }
+      else {
+          status.playerRightName = username;
+      } 
 
-      // emit all the currently logged in chatters
-      client.emit('updatePlayers', status.players);
-      client.broadcast.emit('updatePlayers', status.players);
+      // emit all the currently logged in players
+      client.emit('updatePlayers', status);
+      client.broadcast.emit('updatePlayers', status);
     });
+
+
 
   client.on('disconnect', function(){
     client.get('username', function(err, username){
-     status.players = _.without(status.players, username);
-      client.emit('updatePlayers', status.players);
-      client.broadcast.emit('updatePlayers', status.players);
+     if (status.playerLeftName === username) {
+      status.playerLeftName = null;
+     }
+     else {
+      status.playerRightName = null;
+     }
+      
+      client.broadcast.emit('updatePlayers', status);
     });
   });
 
