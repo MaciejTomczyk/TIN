@@ -1,4 +1,4 @@
-
+﻿
 /**
  * Module dependencies.
  */
@@ -43,6 +43,7 @@ app.get('/', function(req, response) {
 
 
 var status = {
+  actions           : ['przygotuj składniki', 'wstaw wode', 'ugnieć ciasto'],
   playerLeftName    : null, 
   playerRightName   : null, 
   playerLeftAction  : 0,
@@ -74,6 +75,8 @@ io.sockets.on('connection', function(client) {
       // emit all the currently logged in players
       client.emit('updatePlayers', status);
       client.broadcast.emit('updatePlayers', status);
+      client.emit('updateSteps', status);
+      client.broadcast.emit('updateSteps', status);
     });
 
 

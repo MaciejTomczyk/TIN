@@ -5,6 +5,8 @@
 	var $title = $('title'),
 		$leftName = $('#playerLeftName'),
 		$rightName = $('#playerRightName');
+		$leftStep = $('#stepLeft'),
+		$rightStep = $('#stepRight');
 
 
 
@@ -38,6 +40,18 @@
 		}
 		else {
 			$('<h2>',{html: 'Empty'}).appendTo($rightName);
+		}
+	});
+	
+	socket.on('updateSteps', function(status) {
+
+		$leftStep.empty();
+		$rightStep.empty();
+		if (status.playerLeftName !== null) {
+			$('<p>',{html: status.actions[status.playerLeftAction]}).appendTo($leftStep);
+		}
+		if (status.playerRightName !== null) {
+			$('<p>',{html: status.actions[status.playerRightAction]}).appendTo($rightStep);
 		}
 	});
 
