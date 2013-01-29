@@ -80,7 +80,7 @@ app.post('/', function(req, res) {
 
 
 
-//  SOCKET IO (used in game)
+//  SOCKET IO 
 
 io.sockets.on('connection', function(client) {
   console.log('Client connected...');
