@@ -113,7 +113,7 @@ io.sockets.on('connection', function(client) {
      if (status.playerLeftName === username) {
       status.playerLeftName = null;
      }
-     else {
+     else if(status.playerRightName === username) {
       status.playerRightName = null;
      }
      if (status.playerLeftName === null && status.playerRightName === null) {
