@@ -91,7 +91,7 @@ io.sockets.on('connection', function(client) {
     client.emit('allowJoin');
   }
 
-  client.on('join', function(username) {
+client.on('join', function(username) {
     // ustawianie nazwy użytkownika/połączenia
       client.set('username', username);
       if (status.playerLeftName === null) {
@@ -101,11 +101,13 @@ io.sockets.on('connection', function(client) {
           status.playerRightName = username;
       } 
 
-      // emit all the currently logged in players
+      
       client.emit('updatePlayers', status);
       client.broadcast.emit('updatePlayers', status);
+      if(status.playerLeftName !== null && status.playerRightName !== null){
       client.emit('updateSteps', status);
       client.broadcast.emit('updateSteps', status);
+    }
     });
 
   client.on('disconnect', function(){
