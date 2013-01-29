@@ -1,24 +1,24 @@
-﻿
+
 /**
  * Module dependencies.
  */
 
-var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
-  , http = require('http')
-  , path = require('path')
-  , socket = require('socket.io');
+var express = require('express'),
+    http = require('http'),
+    path = require('path'),
+    socket = require('socket.io');
 
-var _ = require('underscore');
+var rec = require('./databases/recipies.js').recipies
+var taffy = require('taffy'),
+    recipies = taffy(rec);
 
 var app = express();
 
-app.configure(function(){
+app.configure(function () {
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.favicon());
+  app.set('view engine', 'ejs');
+  app.use(express.favicon(__dirname + '/public/images/favicon.ico'));
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
@@ -26,31 +26,61 @@ app.configure(function(){
   app.use(express.static(__dirname + '/public'));
 });
 
-app.configure('development', function(){
+app.configure('development', function (){
   app.use(express.errorHandler());
 });
 
 var server = http.createServer(app);
 var io = socket.listen(server);
 
-server.listen(app.get('port'), function() {
+server.listen(app.get('port'), function () {
   console.log("Listening on " + app.get('port'));
 });
 
-app.get('/', function(req, response) {
-  response.sendfile(__dirname + '/index.html');
+//  GAME STATE
+var status = null;
+
+// ROUTES 
+
+app.get('/game', function(req, res, next){
+  if(status !== null) {
+    res.render('game');
+  }
+  else {
+    res.redirect('/');
+  }
+});
+
+app.get('/', function(req, res) {
+  if(status === null) {
+    res.render('home', {
+      //wybiera wszystkie nazwy przepisów jako tablice
+      recipies: recipies().select('recipieName')
+    });
+  }
+  else {
+    res.redirect('/game');
+  }
+});
+//funkcja po wybraniu przepisu
+app.post('/', function(req, res) {
+  //tworzy akcje użytkowników
+  var przepis = req.body.recipie;
+  var steps = recipies({recipieName: przepis}).first().steps;
+  //console.log(steps);
+  status = {
+    actions           : steps,
+    playerLeftName    : null, 
+    playerRightName   : null, 
+    playerLeftAction  : 0,
+    playerRightAction : 0
+  };
+  res.redirect('/game');
 });
 
 
-var status = {
-  actions           : ['przygotuj składniki', 'wstaw wode', 'ugnieć ciasto'],
-  playerLeftName    : null, 
-  playerRightName   : null, 
-  playerLeftAction  : 0,
-  playerRightAction : 0
-};
 
-
+//  SOCKET IO (used in game)
 
 io.sockets.on('connection', function(client) {
   console.log('Client connected...');
@@ -61,9 +91,8 @@ io.sockets.on('connection', function(client) {
     client.emit('allowJoin');
   }
 
-
   client.on('join', function(username) {
-    // set username associate to the client
+    // ustawianie nazwy użytkownika/połączenia
       client.set('username', username);
       if (status.playerLeftName === null) {
         status.playerLeftName = username;
@@ -79,8 +108,6 @@ io.sockets.on('connection', function(client) {
       client.broadcast.emit('updateSteps', status);
     });
 
-
-
   client.on('disconnect', function(){
     client.get('username', function(err, username){
      if (status.playerLeftName === username) {
@@ -89,8 +116,25 @@ io.sockets.on('connection', function(client) {
      else {
       status.playerRightName = null;
      }
+     if (status.playerLeftName === null && status.playerRightName === null) {
+      status = null;
+     }
       
       client.broadcast.emit('updatePlayers', status);
+    });
+  });
+
+  client.on('next', function(){
+    client.get('username', function(err, username){
+      console.log(username);
+     if (status.playerLeftName === username) {
+      status.playerLeftAction++;
+     }
+     else if(status.playerRightName === username) {
+      status.playerRightAction++;
+     }
+      client.emit('updateSteps', status);
+      client.broadcast.emit('updateSteps', status);
     });
   });
 

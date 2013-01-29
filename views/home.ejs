@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)http://twitter.github.com/bootstrap/examples/hero.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Cook!</title>
+
+    <!-- Le styles -->
+    <link href="/stylesheets/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+    <link href="/stylesheets/bootstrap-responsive.css" rel="stylesheet"></head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Cook!</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit">
+        <h1>Cook Showdown!</h1>
+        <br><br>
+        <!-- wysyłanie post'em -->
+        <form name="input" action="/" method="post">
+          <p>Wybierz przepis:</p>
+          <select name="recipie">
+            <!--dla każdego przepisu tworzenie opcji w liście-->
+          <% recipies.forEach(function(recipie){ %>
+            <option value="<%= recipie %>"><%= recipie %></option>
+          <% }) %>
+          </select>
+          <br>
+          <input class="btn" type="submit" value="Submit">
+        </form>
+          
+      </div>
+
+      <hr>
+
+      <footer>
+        <p>© TIN project site</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/javascripts/jquery.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
+
+</body>
+</html>
