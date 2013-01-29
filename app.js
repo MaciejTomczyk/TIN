@@ -1,16 +1,18 @@
-
+/*jshint node:true */
+/*global status:true */
+'use strict';
 /**
  * Module dependencies.
  */
 
 var express = require('express'),
     http = require('http'),
-    path = require('path'),
     socket = require('socket.io');
 
-var rec = require('./databases/recipies.js').recipies
-var taffy = require('taffy'),
-    recipies = taffy(rec);
+var taffy = require('taffy');
+var rec = require('./databases/recipies.js').recipies;
+
+var recipies = taffy(rec);
 
 var app = express();
 
@@ -23,7 +25,7 @@ app.configure(function () {
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
+  app.use(express['static'](__dirname + '/public'));
 });
 
 app.configure('development', function (){
@@ -42,7 +44,7 @@ var status = null;
 
 // ROUTES 
 
-app.get('/game', function(req, res, next){
+app.get('/game', function(req, res){
   if(status !== null) {
     res.render('game');
   }
@@ -86,12 +88,13 @@ io.sockets.on('connection', function(client) {
   console.log('Client connected...');
   if (status.playerLeftName !== null && status.playerRightName !== null) {
     client.emit('playersLimit', status);
+    client.emit('updateSteps', status);
   }
   else{ 
     client.emit('allowJoin');
   }
 
-client.on('join', function(username) {
+  client.on('join', function(username) {
     // ustawianie nazwy użytkownika/połączenia
       client.set('username', username);
       if (status.playerLeftName === null) {
@@ -112,22 +115,24 @@ client.on('join', function(username) {
 
   client.on('disconnect', function(){
     client.get('username', function(err, username){
+    
      if (status.playerLeftName === username) {
-      status.playerLeftName = null;
+      status.playerLeftName = 'Player 1 left';
      }
      else if(status.playerRightName === username) {
-      status.playerRightName = null;
+      status.playerRightName = 'Player 2 left';
      }
-     if (status.playerLeftName === null && status.playerRightName === null) {
+
+      if (status.playerLeftName === 'Player 1 left' && status.playerRightName === 'Player 2 left') {
       status = null;
      }
-      
       client.broadcast.emit('updatePlayers', status);
     });
   });
 
   client.on('next', function(){
     client.get('username', function(err, username){
+      if(status!==null && status.playerLeftName !== null && status.playerRightName !== null){
       console.log(username);
      if (status.playerLeftName === username) {
       status.playerLeftAction++;
@@ -137,6 +142,7 @@ client.on('join', function(username) {
      }
       client.emit('updateSteps', status);
       client.broadcast.emit('updateSteps', status);
+    }
     });
   });
 
