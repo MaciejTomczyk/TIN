@@ -68,6 +68,7 @@ app.get('/', function (req, res) {
 app.post('/', function (req, res) {
   //tworzy akcje użytkowników
   var przepis = req.body.recipie;
+  console.log(req.body);
   var steps = recipies({recipieName: przepis}).first().steps;
   //console.log(steps);
   status = {
@@ -88,6 +89,7 @@ io.sockets.on('connection', function (client) {
   console.log('Client connected...');
   if (status.playerLeftName !== null && status.playerRightName !== null) {
     client.emit('playersLimit', status);
+    client.set('username', 'spectator');
     client.emit('updateSteps', status);
   }
   else { 
@@ -114,9 +116,12 @@ io.sockets.on('connection', function (client) {
     }
     });
 
-  client.on('disconnect', function (){
+  client.on('disconnect', function () {
     client.get('username', function (err, username){
+     if (username !== 'spectator'){
 
+      
+    
      if (status.playerLeftName === username) {
       status.playerLeftName = null;
      }
@@ -129,11 +134,11 @@ io.sockets.on('connection', function (client) {
       status = null;
      }
       client.broadcast.emit('updatePlayers', status);
-      
+    }
     });
   });
 
-  client.on('next', function (){
+  client.on('next', function () {
     client.get('username', function (err, username) {
       if (status !== null && status.playerLeftName !== null && status.playerRightName !== null){
      //console.log(username);

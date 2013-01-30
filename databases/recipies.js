@@ -10,5 +10,12 @@ exports.recipies = [
 		'przygotuj ciasto',
 		'ulep placki',
 		'usmaż placki'
+	]},
+	{id: 3, recipieName: 'pyzy', steps: [
+		'przygotuj składniki',
+		'przygotuj ciasto',
+		'ulep pyzy',
+		'ugotuj pyzy'
 	]}
+
 ];
