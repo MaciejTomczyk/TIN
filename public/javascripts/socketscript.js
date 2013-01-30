@@ -1,11 +1,10 @@
 /*jshint node:true */
 /*global io:true */
 'use strict';
-(function() {
+(function () {
 
-	var socket = io.connect(window.location.hostname);
+	var socket = io.connect('http://localhost');
 
-	
 		var $leftName = $('#playerLeftName'),
 		$rightName = $('#playerRightName'),
 		$leftStep = $('#stepLeft'),
@@ -14,7 +13,7 @@
 
 
 	//blokada dołączania
-	socket.on('playersLimit', function(status) {
+	socket.on('playersLimit', function (status) {
 		alert("Players limit reached! You can not join this game, but you still can watch the progress!");
 		$leftName.empty();
 		$rightName.empty();
@@ -25,15 +24,14 @@
 		$('<h2>',{html: status.playerRightName}).appendTo($rightName);
 	});
 	//dołączanie graczy
-	socket.on('allowJoin', function() {
+	socket.on('allowJoin', function () {
 		var username = prompt("Please enter your name:");
 		username = username ? username : "Someone";
 		socket.emit('join', username);
 	});
 
-    //odświeżanie graczy
-	socket.on('updatePlayers', function(status) {
-
+	//odświeżanie graczy
+	socket.on('updatePlayers', function (status) {
 		$leftName.empty();
 		$rightName.empty();
 		if (status.playerLeftName !== null) {
@@ -50,7 +48,7 @@
 		}
 	});
 	//odświeżanie akcji
-	socket.on('updateSteps', function(status) {
+	socket.on('updateSteps', function (status) {
 
 		$leftStep.empty();
 		$rightStep.empty();
@@ -73,7 +71,7 @@
 		}
 	});
 	//przełączanie na kolejną akcję
-	$('#next').on('click', function() {
+	$('#next').on('click', function () {
 		socket.emit('next');
 	});
 

@@ -28,7 +28,7 @@ app.configure(function () {
   app.use(express['static'](__dirname + '/public'));
 });
 
-app.configure('development', function (){
+app.configure('development', function () {
   app.use(express.errorHandler());
 });
 
@@ -44,36 +44,36 @@ var status = null;
 
 // ROUTES 
 
-app.get('/game', function(req, res){
-  if(status !== null) {
+app.get('/game', function (req, res) {
+  if (status !== null) {
     res.render('game');
   }
   else {
     res.redirect('/');
-  }
+}
 });
 
-app.get('/', function(req, res) {
-  if(status === null) {
+app.get('/', function (req, res) {
+  if (status === null) {
     res.render('home', {
       //wybiera wszystkie nazwy przepisów jako tablice
       recipies: recipies().select('recipieName')
     });
   }
-  else {
+ else {
     res.redirect('/game');
   }
 });
 //funkcja po wybraniu przepisu
-app.post('/', function(req, res) {
+app.post('/', function (req, res) {
   //tworzy akcje użytkowników
   var przepis = req.body.recipie;
   var steps = recipies({recipieName: przepis}).first().steps;
   //console.log(steps);
   status = {
     actions           : steps,
-    playerLeftName    : null, 
-    playerRightName   : null, 
+    playerLeftName    : null,
+    playerRightName   : null,
     playerLeftAction  : 0,
     playerRightAction : 0
   };
@@ -84,17 +84,17 @@ app.post('/', function(req, res) {
 
 //  SOCKET IO 
 
-io.sockets.on('connection', function(client) {
+io.sockets.on('connection', function (client) {
   console.log('Client connected...');
   if (status.playerLeftName !== null && status.playerRightName !== null) {
     client.emit('playersLimit', status);
     client.emit('updateSteps', status);
   }
-  else{ 
+  else { 
     client.emit('allowJoin');
   }
 
-  client.on('join', function(username) {
+  client.on('join', function (username) {
     // ustawianie nazwy użytkownika/połączenia
       client.set('username', username);
       if (status.playerLeftName === null) {
@@ -107,37 +107,40 @@ io.sockets.on('connection', function(client) {
       
       client.emit('updatePlayers', status);
       client.broadcast.emit('updatePlayers', status);
-      if(status.playerLeftName !== null && status.playerRightName !== null){
+
+      if (status.playerLeftName !== null && status.playerRightName !== null){
       client.emit('updateSteps', status);
       client.broadcast.emit('updateSteps', status);
     }
     });
 
-  client.on('disconnect', function(){
-    client.get('username', function(err, username){
-    
+  client.on('disconnect', function (){
+    client.get('username', function (err, username){
+
      if (status.playerLeftName === username) {
-      status.playerLeftName = 'Player 1 left';
-     }
-     else if(status.playerRightName === username) {
-      status.playerRightName = 'Player 2 left';
+      status.playerLeftName = null;
      }
 
-      if (status.playerLeftName === 'Player 1 left' && status.playerRightName === 'Player 2 left') {
+     if (status.playerRightName === username) {
+      status.playerRightName = null;
+     }
+
+     if (status.playerLeftName === null && status.playerRightName === null) {
       status = null;
      }
       client.broadcast.emit('updatePlayers', status);
+      
     });
   });
 
-  client.on('next', function(){
-    client.get('username', function(err, username){
-      if(status!==null && status.playerLeftName !== null && status.playerRightName !== null){
-      console.log(username);
+  client.on('next', function (){
+    client.get('username', function (err, username) {
+      if (status !== null && status.playerLeftName !== null && status.playerRightName !== null){
+     //console.log(username);
      if (status.playerLeftName === username) {
       status.playerLeftAction++;
      }
-     else if(status.playerRightName === username) {
+     else if (status.playerRightName === username) {
       status.playerRightAction++;
      }
       client.emit('updateSteps', status);
